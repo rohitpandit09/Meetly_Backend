@@ -17,7 +17,7 @@ const io = new Server(server, {
   },
 });
 
-const rooms = {};
+const roomUsers = {};
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
@@ -28,10 +28,14 @@ io.on("connection", (socket) => {
   socket.on("join-dashboard", ({ meetingCode, user }) => {
     socket.join(meetingCode);
 
-    
+    if (!roomUsers[meetingCode]) {
+      roomUsers[meetingCode] = [];
+    }
 
-    // store user in room
-    if (!roomUsers[meetingCode]) roomUsers[meetingCode] = [];
+    
+    roomUsers[meetingCode] = roomUsers[meetingCode].filter(
+      (u) => u.id !== socket.id
+    );
 
     roomUsers[meetingCode].push({
       id: socket.id,
@@ -39,16 +43,10 @@ io.on("connection", (socket) => {
       online: true,
     });
 
-    const cilents = Array.from(io.sockets.adapter.rooms.get(meetingCode) || []);
+    console.log("Room users:", roomUsers[meetingCode]);
 
-    // 🔥 SEND EXISTING USERS TO NEW USER
-    socket.emit("all-users", cilents);
-
-    // 🔥 INFORM OTHERS
-    socket.to(meetingCode).emit("user-joined", {
-      socketId: socket.id,
-      user,
-    });
+    // ✅ SEND TO ALL USERS
+    io.to(meetingCode).emit("dashboard-users", roomUsers[meetingCode]);
   });
   // =========================
   // CREATE POLL
@@ -134,7 +132,7 @@ io.on("connection", (socket) => {
       await Chat.create({
         meetingCode,
         sender: message.sender,
-        text: message.text,
+        text: message.content,
         time: message.time,
       });
 
@@ -161,12 +159,12 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
 
-    for (const room in rooms) {
-      rooms[room] = rooms[room].filter(
+    for (const room in roomUsers) {
+      roomUsers[room] = roomUsers[room].filter(
         (user) => user.id !== socket.id
       );
 
-      socket.to(room).emit("user-left", socket.id);
+      io.to(room).emit("dashboard-users", roomUsers[room]);
     }
   });
 });
