@@ -28,6 +28,8 @@ io.on("connection", (socket) => {
   socket.on("join-room", ({ meetingCode, user }) => {
     socket.join(meetingCode);
 
+    
+
     // store user in room
     if (!rooms[meetingCode]) rooms[meetingCode] = [];
 
@@ -36,8 +38,10 @@ io.on("connection", (socket) => {
       user,
     });
 
+    const cilents = Array.from(io.sockets.adapter.rooms.get(meetingCode) || []);
+
     // 🔥 SEND EXISTING USERS TO NEW USER
-    socket.emit("all-users", rooms[meetingCode]);
+    socket.emit("all-users", cilents);
 
     // 🔥 INFORM OTHERS
     socket.to(meetingCode).emit("user-joined", {
