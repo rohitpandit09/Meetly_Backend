@@ -25,17 +25,18 @@ io.on("connection", (socket) => {
   // =========================
   // JOIN ROOM
   // =========================
-  socket.on("join-room", ({ meetingCode, user }) => {
+  socket.on("join-dashboard", ({ meetingCode, user }) => {
     socket.join(meetingCode);
 
     
 
     // store user in room
-    if (!rooms[meetingCode]) rooms[meetingCode] = [];
+    if (!roomUsers[meetingCode]) roomUsers[meetingCode] = [];
 
-    rooms[meetingCode].push({
+    roomUsers[meetingCode].push({
       id: socket.id,
-      user,
+      ...user,
+      online: true,
     });
 
     const cilents = Array.from(io.sockets.adapter.rooms.get(meetingCode) || []);
