@@ -47,6 +47,14 @@ io.on("connection", (socket) => {
 
     // ✅ SEND TO ALL USERS
     io.to(meetingCode).emit("dashboard-users", roomUsers[meetingCode]);
+
+    socket.on("start-meeting", ({ meetingCode }) => {
+      console.log("Meeting started:", meetingCode);
+
+      io.to(meetingCode).emit("meeting-started", {
+        meetingCode
+      });
+    });
   });
   // =========================
   // CREATE POLL
