@@ -7,6 +7,7 @@ const Poll = require("./src/models/Poll");
 const http = require("http");
 const Meeting = require('./src/models/Meeting')
 const meetingStatus = {};
+const roomPeers = {};
 
 dotenv.config();
 connectDB();
@@ -52,6 +53,34 @@ io.on("connection", (socket) => {
 
   });
 
+    // =========================
+  // JOIN MEETING ROOM (WEBRTC)
+  // =========================
+  socket.on("join-room", ({ meetingCode, user }) => {
+    socket.join(meetingCode);
+
+    if (!roomPeers[meetingCode]) {
+      roomPeers[meetingCode] = [];
+    }
+
+    // 🔥 send existing users to new user
+    const existingUsers = roomPeers[meetingCode];
+
+    socket.emit("all-users", existingUsers);
+
+    // 🔥 add new user
+    roomPeers[meetingCode].push({
+      id: socket.id,
+      user,
+    });
+
+    // 🔥 notify others
+    socket.to(meetingCode).emit("user-joined", {
+      socketId: socket.id,
+      user,
+    });
+  });
+
   socket.on("start-meeting", ({ meetingCode }) => {
     console.log("Meeting started:", meetingCode);
 
@@ -67,7 +96,7 @@ io.on("connection", (socket) => {
       isLive: meetingStatus[meetingCode] || false,
     });
   });
-  
+
   // =========================
   // CREATE POLL
   // =========================
@@ -181,6 +210,14 @@ io.on("connection", (socket) => {
   // =========================
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
+
+    for (const room in roomPeers) {
+      roomPeers[room] = roomPeers[room].filter(
+        (user) => user.id !== socket.id
+      );
+
+      socket.to(room).emit("user-left", socket.id);
+    }
 
     for (const room in roomUsers) {
       roomUsers[room] = roomUsers[room].filter(
