@@ -53,6 +53,10 @@ exports.submitAssignment = async (req, res) => {
       (s) => s.studentId === studentId
     );
 
+    if (!assignment) {
+      return res.status(404).json({ error: "Assignment not found" });
+    }
+
     if (!submission) {
       submission = {
         studentId,
@@ -62,7 +66,7 @@ exports.submitAssignment = async (req, res) => {
       assignment.submissions.push(submission);
     }
 
-    // 🔥 THIS IS YOUR CODE — EXACT LOCATION
+   
     const file = req.file;
 
     submission.fileName = file ? file.filename : null;

@@ -6,6 +6,7 @@ const Chat = require("./src/models/Chat");
 const Poll = require("./src/models/Poll");
 const http = require("http");
 const Meeting = require('./src/models/Meeting')
+const meetingStatus = {};
 
 dotenv.config();
 connectDB();
@@ -51,21 +52,21 @@ io.on("connection", (socket) => {
 
   });
 
-  socket.on("start-meeting", async ({ meetingCode }) => {
-    console.log("🔥 Meeting started:", meetingCode);
+  socket.on("start-meeting", ({ meetingCode }) => {
+    console.log("Meeting started:", meetingCode);
 
-    // ✅ UPDATE DB
-    await Meeting.findOneAndUpdate(
-      { meetingCode },
-      { isLive: true }
-    );
+    meetingStatus[meetingCode] = true;
 
-    // ✅ EMIT
     io.to(meetingCode).emit("meeting-started", {
-      meetingCode
+      meetingCode,
     });
   });
-
+  
+  socket.on("check-meeting-status", ({ meetingCode }) => {
+    socket.emit("meeting-status", {
+      isLive: meetingStatus[meetingCode] || false,
+    });
+  });
   
   // =========================
   // CREATE POLL
