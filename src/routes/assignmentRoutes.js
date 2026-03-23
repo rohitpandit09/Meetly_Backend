@@ -12,6 +12,6 @@ const {
 
 router.post("/create", upload.single("file"), createAssignment);
 router.get("/:meetingCode", getAssignments);
-router.post("/submit", submitAssignment);
+router.post("/submit", upload.single("file"),submitAssignment);
 
 module.exports = router;

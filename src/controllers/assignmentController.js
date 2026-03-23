@@ -49,32 +49,33 @@ exports.submitAssignment = async (req, res) => {
 
     const assignment = await Assignment.findById(assignmentId);
 
-    if (!assignment) {
-      return res.status(404).json({ message: "Assignment not found" });
-    }
-
-    const already = assignment.submissions.find(
+    let submission = assignment.submissions.find(
       (s) => s.studentId === studentId
     );
 
-    if (already) {
-      return res.status(400).json({ message: "Already submitted" });
+    if (!submission) {
+      submission = {
+        studentId,
+        studentName,
+        submitted: false,
+      };
+      assignment.submissions.push(submission);
     }
 
-    assignment.submissions.push({
-      studentId,
-      studentName,
-      submitted: true,
-      fileName: `${studentName}_submission.pdf`,
-      time: new Date().toLocaleString(),
-      late: new Date() > new Date(assignment.dueDate)
-    });
+    // 🔥 THIS IS YOUR CODE — EXACT LOCATION
+    const file = req.file;
+
+    submission.fileName = file ? file.filename : null;
+    submission.submitted = true;
+    submission.time = new Date();
+    submission.late = new Date() > assignment.dueDate;
 
     await assignment.save();
 
-    res.json({ message: "Assignment submitted" });
+    res.json({ success: true });
 
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Submit error:", error);
+    res.status(500).json({ error: "Submission failed" });
   }
 };
