@@ -57,29 +57,29 @@ io.on("connection", (socket) => {
   // JOIN MEETING ROOM (WEBRTC)
   // =========================
   socket.on("join-room", ({ meetingCode, user }) => {
-  socket.join(meetingCode);
+    socket.join(meetingCode);
 
-  if (!roomPeers[meetingCode]) {
-    roomPeers[meetingCode] = [];
-  }
+    if (!roomPeers[meetingCode]) {
+      roomPeers[meetingCode] = [];
+    }
 
-  // send existing users
-  socket.emit(
-    "all-users",
-    roomPeers[meetingCode].map((id) => ({ id }))
-  );
+    // 🔥 SEND EXISTING USERS TO NEW USER
+    socket.emit(
+      "all-users",
+      roomPeers[meetingCode].map((id) => ({ id }))
+    );
 
-  // add current user
-  roomPeers[meetingCode].push(socket.id);
+    // 🔥 ADD NEW USER
+    roomPeers[meetingCode].push(socket.id);
 
-  // notify others
-  socket.to(meetingCode).emit("user-joined", {
-    socketId: socket.id,
-    user,
+    // 🔥 TELL OTHERS NEW USER JOINED
+    socket.to(meetingCode).emit("user-joined", {
+      socketId: socket.id,
+      user,
+    });
+
+    console.log("ROOM PEERS:", roomPeers[meetingCode]);
   });
-
-  console.log("JOIN ROOM:", meetingCode, roomPeers[meetingCode]);
-});
 
   socket.on("start-meeting", ({ meetingCode }) => {
     console.log("Meeting started:", meetingCode);
@@ -209,17 +209,17 @@ io.on("connection", (socket) => {
   // DISCONNECT
   // =========================
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+  console.log("User disconnected:", socket.id);
 
-    for (const room in roomPeers) {
-      roomPeers[room] = roomPeers[room].filter(
-        (id) => id !== socket.id
-      );
+  for (const room in roomPeers) {
+    roomPeers[room] = roomPeers[room].filter(
+      (id) => id !== socket.id
+    );
 
-      socket.to(room).emit("user-left", socket.id);
-    }
-  });
-  });
+    socket.to(room).emit("user-left", socket.id);
+  }
+});
+});
 
 server.listen(3000, () => {
   console.log("Server running on port 3000");
