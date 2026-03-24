@@ -4,6 +4,7 @@ const OpenAI = require("openai");
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",
 });
 
 router.post("/chat", async (req, res) => {
@@ -11,11 +12,11 @@ router.post("/chat", async (req, res) => {
     const { message } = req.body;
 
     const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: "You are a helpful classroom AI assistant." },
-        { role: "user", content: message },
-      ],
+        model: "llama3-8b-8192",   // 🔥 FAST + FREE
+        messages: [
+            { role: "system", content: "You are a helpful classroom AI assistant." },
+            { role: "user", content: message },
+        ],
     });
 
     res.json({
