@@ -6,6 +6,7 @@ const Chat = require("./src/models/Chat");
 const Poll = require("./src/models/Poll");
 const http = require("http");
 const Meeting = require('./src/models/Meeting')
+const aiRoutes = require('./src/routes/aiRoutes');
 const meetingStatus = {};
 const roomPeers = {};
 
@@ -72,7 +73,7 @@ io.on("connection", (socket) => {
   socket.emit("all-users", existingUsers);
 
     // 🔥 ADD NEW USER
-    roomPeers[meetingCode].push({
+      roomPeers[meetingCode].push({
        socketId: socket.id,
        user,
   });
