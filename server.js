@@ -64,13 +64,18 @@ io.on("connection", (socket) => {
     }
 
     // 🔥 SEND EXISTING USERS TO NEW USER
-    socket.emit(
-      "all-users",
-      roomPeers[meetingCode].map((id) => ({ id }))
-    );
+     const existingUsers = roomPeers[meetingCode].map((u) => ({
+    id: u.socketId,
+    user: u.user,
+  }));
+
+  socket.emit("all-users", existingUsers);
 
     // 🔥 ADD NEW USER
-    roomPeers[meetingCode].push(socket.id);
+    roomPeers[meetingCode].push({
+       socketId: socket.id,
+       user,
+  });
 
     // 🔥 TELL OTHERS NEW USER JOINED
     socket.to(meetingCode).emit("user-joined", {
