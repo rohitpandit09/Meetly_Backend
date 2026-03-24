@@ -10,6 +10,8 @@ const aiRoutes = require('./src/routes/aiRoutes');
 const meetingStatus = {};
 const roomPeers = {};
 
+app.use('/api/ai',aiRoutes);
+
 dotenv.config();
 connectDB();
 
