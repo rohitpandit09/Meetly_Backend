@@ -63,22 +63,22 @@ io.on("connection", (socket) => {
       roomPeers[meetingCode] = [];
     }
 
-    // 🔥 send existing users to new user
-    const existingUsers = roomPeers[meetingCode];
+    // 🔥 SEND EXISTING USERS TO NEW USER
+    socket.emit(
+      "all-users",
+      roomPeers[meetingCode].map((id) => ({ id }))
+    );
 
-    socket.emit("all-users", existingUsers);
+    // 🔥 ADD NEW USER
+    roomPeers[meetingCode].push(socket.id);
 
-    // 🔥 add new user
-    roomPeers[meetingCode].push({
-      id: socket.id,
-      user,
-    });
-
-    // 🔥 notify others
+    // 🔥 TELL OTHERS NEW USER JOINED
     socket.to(meetingCode).emit("user-joined", {
       socketId: socket.id,
       user,
     });
+
+    console.log("ROOM PEERS:", roomPeers[meetingCode]);
   });
 
   socket.on("start-meeting", ({ meetingCode }) => {
@@ -213,21 +213,13 @@ io.on("connection", (socket) => {
 
     for (const room in roomPeers) {
       roomPeers[room] = roomPeers[room].filter(
-        (user) => user.id !== socket.id
+        (id) => id !== socket.id
       );
 
       socket.to(room).emit("user-left", socket.id);
     }
-
-    for (const room in roomUsers) {
-      roomUsers[room] = roomUsers[room].filter(
-        (user) => user.id !== socket.id
-      );
-
-      io.to(room).emit("dashboard-users", roomUsers[room]);
-    }
   });
-});
+  });
 
 server.listen(3000, () => {
   console.log("Server running on port 3000");
