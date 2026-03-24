@@ -57,29 +57,29 @@ io.on("connection", (socket) => {
   // JOIN MEETING ROOM (WEBRTC)
   // =========================
   socket.on("join-room", ({ meetingCode, user }) => {
-    socket.join(meetingCode);
+  socket.join(meetingCode);
 
-    if (!roomPeers[meetingCode]) {
-      roomPeers[meetingCode] = [];
-    }
+  if (!roomPeers[meetingCode]) {
+    roomPeers[meetingCode] = [];
+  }
 
-    // 🔥 SEND EXISTING USERS TO NEW USER
-    socket.emit(
-      "all-users",
-      roomPeers[meetingCode].map((id) => ({ id }))
-    );
+  // send existing users
+  socket.emit(
+    "all-users",
+    roomPeers[meetingCode].map((id) => ({ id }))
+  );
 
-    // 🔥 ADD NEW USER
-    roomPeers[meetingCode].push(socket.id);
+  // add current user
+  roomPeers[meetingCode].push(socket.id);
 
-    // 🔥 TELL OTHERS NEW USER JOINED
-    socket.to(meetingCode).emit("user-joined", {
-      socketId: socket.id,
-      user,
-    });
-
-    console.log("ROOM PEERS:", roomPeers[meetingCode]);
+  // notify others
+  socket.to(meetingCode).emit("user-joined", {
+    socketId: socket.id,
+    user,
   });
+
+  console.log("JOIN ROOM:", meetingCode, roomPeers[meetingCode]);
+});
 
   socket.on("start-meeting", ({ meetingCode }) => {
     console.log("Meeting started:", meetingCode);
