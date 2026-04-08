@@ -1,17 +1,6 @@
 const mongoose = require("mongoose");
 
 const meetingSchema = new mongoose.Schema({
-
-  messages: [
-  {
-    sender: String,
-    role: String,
-    content: String,
-    time: String,
-    isNotice: Boolean
-  }
-],
-
   className: {
     type: String,
     required: true
@@ -24,26 +13,37 @@ const meetingSchema = new mongoose.Schema({
 
   meetingCode: {
     type: String,
-    unique: true
+    unique: true,
+    required: true
   },
 
-  host: {
+  hostId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
+    ref: "User",
+    required: true
   },
+
+  isLive: {
+    type: Boolean,
+    default: false
+  },
+
+  participants: [
+    {
+      userId: mongoose.Schema.Types.ObjectId,
+      name: String,
+      joined_at: { type: Date, default: Date.now }
+    }
+  ],
 
   createdAt: {
     type: Date,
     default: Date.now
   },
 
-  isLive: {
-  type: Boolean,
-  default: false
-}
-
-
-
+  endedAt: {
+    type: Date
+  }
 });
 
 module.exports = mongoose.model("Meeting", meetingSchema);
